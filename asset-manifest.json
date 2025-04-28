@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Here-Comes-The-Bride/static/css/main.bd26cb2f.css",
+    "main.js": "/Here-Comes-The-Bride/static/js/main.9a2b0b86.js",
+    "static/js/453.d1b214da.chunk.js": "/Here-Comes-The-Bride/static/js/453.d1b214da.chunk.js",
+    "index.html": "/Here-Comes-The-Bride/index.html",
+    "main.bd26cb2f.css.map": "/Here-Comes-The-Bride/static/css/main.bd26cb2f.css.map",
+    "main.9a2b0b86.js.map": "/Here-Comes-The-Bride/static/js/main.9a2b0b86.js.map",
+    "453.d1b214da.chunk.js.map": "/Here-Comes-The-Bride/static/js/453.d1b214da.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bd26cb2f.css",
+    "static/js/main.9a2b0b86.js"
+  ]
+}
