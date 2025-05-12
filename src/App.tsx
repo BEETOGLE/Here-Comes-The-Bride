@@ -7,6 +7,7 @@ import About from './components/Testimonials';
 import Consignment from './components/Consignment';
 import Contact from './components/BusinessInfo';
 import Footer from './components/Footer';
+import DreamFinder from './components/DreamFinder';
 import './App.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Hero />
         <ProductCategories />
         <ProductShowcase />
+        <DreamFinder />
         <Consignment />
         <About />
         <Contact />
