@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Here-Comes-The-Bride/static/css/main.e9dff58a.css",
-    "main.js": "/Here-Comes-The-Bride/static/js/main.f4290798.js",
+    "main.css": "/Here-Comes-The-Bride/static/css/main.0b23a05f.css",
+    "main.js": "/Here-Comes-The-Bride/static/js/main.ff17d2f5.js",
     "static/js/453.d1b214da.chunk.js": "/Here-Comes-The-Bride/static/js/453.d1b214da.chunk.js",
     "index.html": "/Here-Comes-The-Bride/index.html",
-    "main.e9dff58a.css.map": "/Here-Comes-The-Bride/static/css/main.e9dff58a.css.map",
-    "main.f4290798.js.map": "/Here-Comes-The-Bride/static/js/main.f4290798.js.map",
+    "main.0b23a05f.css.map": "/Here-Comes-The-Bride/static/css/main.0b23a05f.css.map",
+    "main.ff17d2f5.js.map": "/Here-Comes-The-Bride/static/js/main.ff17d2f5.js.map",
     "453.d1b214da.chunk.js.map": "/Here-Comes-The-Bride/static/js/453.d1b214da.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.e9dff58a.css",
-    "static/js/main.f4290798.js"
+    "static/css/main.0b23a05f.css",
+    "static/js/main.ff17d2f5.js"
   ]
 }
