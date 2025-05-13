@@ -9,6 +9,10 @@ module.exports = {
         secondary: '#F8C8DC',
         accent: '#A7D7C5',
       },
+      fontFamily: {
+        'great-vibes': ['"Great Vibes"', 'cursive'],
+        'playfair': ['"Playfair Display"', 'serif'],
+      },
     },
   },
   plugins: [],
