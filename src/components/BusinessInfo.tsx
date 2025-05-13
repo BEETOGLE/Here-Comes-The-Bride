@@ -73,7 +73,7 @@ const Contact: React.FC = () => {
                         transition={{ duration: 0.2 }}
                       >
                         <FiPhone className="text-primary text-xl mr-4" />
-                        <span>Frances: (123) 456-7890</span>
+                        <span>315-225-3891</span>
                       </motion.div>
                       <motion.div 
                         className="flex items-center"
@@ -81,7 +81,7 @@ const Contact: React.FC = () => {
                         transition={{ duration: 0.2 }}
                       >
                         <FiMail className="text-primary text-xl mr-4" />
-                        <span>frances@herecomesthebride.com</span>
+                        <span>Herecomesthebride2025@aol.com</span>
                       </motion.div>
                     </div>
                   </div>
@@ -137,7 +137,7 @@ const Contact: React.FC = () => {
                     
                     <div className="mt-8">
                       <motion.a 
-                        href="mailto:frances@herecomesthebride.com"
+                        href="mailto:Herecomesthebride2025@aol.com"
                         className="inline-block px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition duration-300 w-full text-center"
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}

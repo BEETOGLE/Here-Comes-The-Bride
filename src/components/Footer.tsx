@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 const Footer: React.FC = () => {
   const socialIcons = [
     { icon: <FiInstagram size={20} />, href: "https://instagram.com", delay: 0.1 },
-    { icon: <FiMail size={20} />, href: "mailto:frances@herecomesthebride.com", delay: 0.2 },
-    { icon: <FiPhone size={20} />, href: "tel:1234567890", delay: 0.3 }
+    { icon: <FiMail size={20} />, href: "mailto:Herecomesthebride2025@aol.com", delay: 0.2 },
+    { icon: <FiPhone size={20} />, href: "tel:3152253891", delay: 0.3 }
   ];
 
   const quickLinks = [
@@ -98,7 +98,7 @@ const Footer: React.FC = () => {
                 whileHover={{ x: 5 }}
               >
                 <FiPhone className="text-primary mt-1 mr-3" />
-                <span>Frances: (123) 456-7890</span>
+                <span>315-225-3891</span>
               </motion.li>
               <motion.li 
                 className="flex items-start"
@@ -109,7 +109,7 @@ const Footer: React.FC = () => {
                 whileHover={{ x: 5 }}
               >
                 <FiMail className="text-primary mt-1 mr-3" />
-                <span>frances@herecomesthebride.com</span>
+                <span>Herecomesthebride2025@aol.com</span>
               </motion.li>
               <motion.li 
                 className="text-gray-400 italic mt-4"
