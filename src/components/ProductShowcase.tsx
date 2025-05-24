@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FiHeart, FiInfo } from 'react-icons/fi';
 import AnimatedSection from './AnimatedSection';
 import { motion } from 'framer-motion';
+import type { Product } from '../data/products';
+import { products as initialProducts } from '../data/products';
 
 interface ProductProps {
   id: string;
@@ -155,35 +157,7 @@ const CategorySection: React.FC<{
 };
 
 const ProductShowcase: React.FC = () => {
-  const [products, setProducts] = useState<ProductProps[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/admin/config.yml');
-        if (!response.ok) {
-          throw new Error('Failed to fetch CMS configuration');
-        }
-        
-        // For now, fall back to the JSON file if CMS is not yet configured
-        const productsResponse = await fetch('/data/products.json');
-        if (!productsResponse.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        
-        const productsData = await productsResponse.json();
-        setProducts(productsData);
-        setLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products');
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
+  const [products] = useState<Product[]>(initialProducts);
 
   const categories = [
     {
@@ -223,22 +197,6 @@ const ProductShowcase: React.FC = () => {
       description: "Beautiful hair pieces to complete your perfect bridal look."
     }
   ];
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Error: {error}</p>
-      </div>
-    );
-  }
 
   return (
     <div>

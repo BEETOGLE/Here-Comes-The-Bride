@@ -1,4 +1,15 @@
-[
+export interface Product {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  price: string;
+  imagePlaceholder: string;
+  sold: boolean;
+  image?: string;
+}
+
+export const products: Product[] = [
   {
     "id": "dress-1",
     "name": "Elegant Lace A-Line",
@@ -89,4 +100,4 @@
     "imagePlaceholder": "Hair Piece",
     "sold": false
   }
-] 
+]; 
