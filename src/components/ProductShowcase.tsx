@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiHeart, FiInfo } from 'react-icons/fi';
 import AnimatedSection from './AnimatedSection';
 import { motion } from 'framer-motion';
 import type { Product } from '../data/products';
-import { products as initialProducts } from '../data/products';
+import { productService } from '../services/productService';
 
 const ProductCard: React.FC<Product> = ({ 
   id, 
@@ -137,7 +137,31 @@ const CategorySection: React.FC<{
 };
 
 const ProductShowcase: React.FC = () => {
-  const [products] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    // Initial load
+    setProducts(productService.getProducts());
+
+    // Set up storage event listener for real-time updates
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'shop_products') {
+        setProducts(JSON.parse(e.newValue || '[]'));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Check for updates every 5 seconds
+    const interval = setInterval(() => {
+      setProducts(productService.getProducts());
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const categories = [
     {

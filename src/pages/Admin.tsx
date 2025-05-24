@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FiEdit2, FiTrash2, FiPlus, FiLogOut } from 'react-icons/fi';
-import { Product, products as initialProducts } from '../data/products';
+import { Product } from '../data/products';
 import { motion } from 'framer-motion';
+import { productService } from '../services/productService';
 
 const Admin: React.FC = () => {
   const { logout } = useAuth();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product>>({
     name: '',
@@ -15,6 +16,10 @@ const Admin: React.FC = () => {
     price: '',
     sold: false
   });
+
+  useEffect(() => {
+    setProducts(productService.getProducts());
+  }, []);
 
   const categories = [
     "Wedding Dresses",
@@ -37,9 +42,9 @@ const Admin: React.FC = () => {
     e.preventDefault();
     if (currentProduct.id) {
       // Update existing product
-      setProducts(prev => prev.map(p => 
-        p.id === currentProduct.id ? { ...p, ...currentProduct } : p
-      ));
+      const updatedProduct = { ...currentProduct as Product };
+      productService.updateProduct(updatedProduct);
+      setProducts(productService.getProducts());
     } else {
       // Add new product
       const newProduct: Product = {
@@ -47,7 +52,8 @@ const Admin: React.FC = () => {
         id: `product-${Date.now()}`,
         imagePlaceholder: currentProduct.category || 'Product'
       };
-      setProducts(prev => [...prev, newProduct]);
+      productService.addProduct(newProduct);
+      setProducts(productService.getProducts());
     }
     setIsEditing(false);
     setCurrentProduct({
@@ -59,9 +65,15 @@ const Admin: React.FC = () => {
     });
   };
 
+  const handleEdit = (product: Product) => {
+    setCurrentProduct(product);
+    setIsEditing(true);
+  };
+
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(prev => prev.filter(p => p.id !== id));
+      productService.deleteProduct(id);
+      setProducts(productService.getProducts());
     }
   };
 
@@ -90,7 +102,16 @@ const Admin: React.FC = () => {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Product Management</h2>
           <button
-            onClick={() => setIsEditing(true)}
+            onClick={() => {
+              setCurrentProduct({
+                name: '',
+                category: 'Wedding Dresses',
+                description: '',
+                price: '',
+                sold: false
+              });
+              setIsEditing(true);
+            }}
             className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90"
           >
             <FiPlus /> Add New Product
@@ -205,39 +226,38 @@ const Admin: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map(product => (
+              {products.map((product) => (
                 <tr key={product.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.category}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{product.category}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {product.price}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{product.price}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      product.sold ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                      product.sold
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-green-100 text-green-800'
                     }`}>
                       {product.sold ? 'Sold' : 'Available'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => {
-                        setCurrentProduct(product);
-                        setIsEditing(true);
-                      }}
+                      onClick={() => handleEdit(product)}
                       className="text-primary hover:text-primary-dark mr-4"
                     >
-                      <FiEdit2 size={18} />
+                      <FiEdit2 className="inline" /> Edit
                     </button>
                     <button
                       onClick={() => handleDelete(product.id)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      <FiTrash2 size={18} />
+                      <FiTrash2 className="inline" /> Delete
                     </button>
                   </td>
                 </tr>
