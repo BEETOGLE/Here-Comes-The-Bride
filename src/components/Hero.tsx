@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import AppointmentButton from './AppointmentButton';
 
 const Hero: React.FC = () => {
   return (
@@ -28,12 +29,7 @@ const Hero: React.FC = () => {
               Discover beautiful wedding dresses and accessories for your special day at affordable prices.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <a 
-                href="#contact" 
-                className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition duration-300"
-              >
-                Contact Us
-              </a>
+              <AppointmentButton />
               <a 
                 href="#wedding-dresses" 
                 className="px-6 py-3 bg-white text-primary border border-primary font-medium rounded-lg hover:bg-gray-50 transition duration-300"

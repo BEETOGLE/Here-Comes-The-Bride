@@ -2,6 +2,7 @@ import React from 'react';
 import { FiClock, FiPhone, FiMail, FiInfo } from 'react-icons/fi';
 import AnimatedSection from './AnimatedSection';
 import { motion } from 'framer-motion';
+import AppointmentButton from './AppointmentButton';
 
 const Contact: React.FC = () => {
   const businessHours = [
@@ -136,14 +137,7 @@ const Contact: React.FC = () => {
                     </div>
                     
                     <div className="mt-8">
-                      <motion.a 
-                        href="mailto:Herecomesthebride2025@aol.com"
-                        className="inline-block px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition duration-300 w-full text-center"
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                      >
-                        Request an Appointment
-                      </motion.a>
+                      <AppointmentButton />
                     </div>
                   </div>
                 </AnimatedSection>

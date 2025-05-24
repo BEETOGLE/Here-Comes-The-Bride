@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX, FiPackage, FiHeart } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX, FiPackage, FiHeart, FiCalendar } from 'react-icons/fi';
 import { Product } from '../data/products';
 import { motion } from 'framer-motion';
 import { productService } from '../services/productService';
+import { dreamFinderService } from '../services/dreamFinderService';
+import { appointmentService } from '../services/appointmentService';
 import DreamDressRequests from '../components/Admin/DreamDressRequests';
+import AppointmentRequests from '../components/Admin/AppointmentRequests';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
-type AdminTab = 'products' | 'requests';
+type AdminTab = 'products' | 'requests' | 'appointments';
 
 const Admin: React.FC = () => {
   const { logout } = useAuth();
@@ -23,10 +26,39 @@ const Admin: React.FC = () => {
     sold: false
   });
   const [imageError, setImageError] = useState<string>('');
+  const [newDreamRequests, setNewDreamRequests] = useState(0);
+  const [newAppointments, setNewAppointments] = useState(0);
 
   useEffect(() => {
+    // Initial load
     setProducts(productService.getProducts());
+    updateNotifications();
+
+    // Set up storage event listener for real-time updates
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dream_dress_requests' || e.key === 'appointment_requests') {
+        updateNotifications();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Check for updates every 5 seconds
+    const interval = setInterval(updateNotifications, 5000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
+
+  const updateNotifications = () => {
+    const dreamRequests = dreamFinderService.getRequests();
+    const appointments = appointmentService.getRequests();
+    
+    setNewDreamRequests(dreamRequests.filter(r => r.status === 'new').length);
+    setNewAppointments(appointments.filter(r => r.status === 'new').length);
+  };
 
   const categories = [
     "Wedding Dresses",
@@ -161,6 +193,27 @@ const Admin: React.FC = () => {
           >
             <FiHeart className="mr-2" />
             Dream Dress Requests
+            {newDreamRequests > 0 && (
+              <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {newDreamRequests}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('appointments')}
+            className={`flex items-center px-4 py-2 rounded-lg ${
+              activeTab === 'appointments'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <FiCalendar className="mr-2" />
+            Appointments
+            {newAppointments > 0 && (
+              <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {newAppointments}
+              </span>
+            )}
           </button>
         </div>
 
@@ -390,8 +443,10 @@ const Admin: React.FC = () => {
               </table>
             </div>
           </>
-        ) : (
+        ) : activeTab === 'requests' ? (
           <DreamDressRequests />
+        ) : (
+          <AppointmentRequests />
         )}
       </div>
     </div>
