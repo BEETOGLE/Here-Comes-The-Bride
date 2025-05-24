@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -18,6 +19,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user was previously logged in
@@ -29,10 +31,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string) => {
     // In a real app, you would validate credentials against a backend
-    // For demo purposes, we'll use a hardcoded check
     if (username === 'admin' && password === 'password123') {
       setIsAuthenticated(true);
       localStorage.setItem('isAuthenticated', 'true');
+      navigate('/admin');
       return true;
     }
     return false;
@@ -41,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('isAuthenticated');
+    navigate('/');
   };
 
   return (

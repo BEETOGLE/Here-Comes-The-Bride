@@ -5,18 +5,7 @@ import { motion } from 'framer-motion';
 import type { Product } from '../data/products';
 import { products as initialProducts } from '../data/products';
 
-interface ProductProps {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  price: string;
-  imagePlaceholder: string;
-  sold: boolean;
-  image?: string;
-}
-
-const Product: React.FC<ProductProps> = ({ 
+const ProductCard: React.FC<Product> = ({ 
   id, 
   name, 
   category, 
@@ -110,7 +99,7 @@ const Product: React.FC<ProductProps> = ({
 
 // This component will display products filtered by category
 const CategorySection: React.FC<{
-  products: ProductProps[];
+  products: Product[];
   category: string;
   title: string;
   description: string;
@@ -138,16 +127,7 @@ const CategorySection: React.FC<{
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProducts.map((product, index) => (
             <AnimatedSection key={product.id} delay={0.2 + index * 0.1} direction="up">
-              <Product
-                id={product.id}
-                name={product.name}
-                category={product.category}
-                description={product.description}
-                price={product.price}
-                imagePlaceholder={product.imagePlaceholder}
-                image={product.image}
-                sold={product.sold}
-              />
+              <ProductCard {...product} />
             </AnimatedSection>
           ))}
         </div>

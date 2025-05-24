@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import Login from './Login';
 
 interface ProtectedRouteProps {
@@ -11,9 +12,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [error, setError] = useState<string>();
 
   const handleLogin = async (username: string, password: string) => {
-    const success = await login(username, password);
-    if (!success) {
-      setError('Invalid username or password');
+    try {
+      const success = await login(username, password);
+      if (!success) {
+        setError('Invalid username or password');
+      }
+    } catch (err) {
+      setError('An error occurred during login');
     }
   };
 

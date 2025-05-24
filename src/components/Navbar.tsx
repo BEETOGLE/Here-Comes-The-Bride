@@ -1,29 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
 import Logo from './Logo';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
-  const [isAdminPage, setIsAdminPage] = useState(false);
-
-  useEffect(() => {
-    const checkIfAdmin = () => {
-      setIsAdminPage(window.location.pathname === '/admin');
-    };
-    
-    checkIfAdmin();
-    window.addEventListener('popstate', checkIfAdmin);
-    
-    return () => {
-      window.removeEventListener('popstate', checkIfAdmin);
-    };
-  }, []);
-
-  const navigate = (path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
+  const location = useLocation();
+  const isAdminPage = location.pathname === '/admin';
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -48,12 +32,12 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <button 
-                onClick={() => navigate('/')}
+              <Link 
+                to="/"
                 className="text-xl font-bold text-primary"
               >
                 <Logo />
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -129,12 +113,12 @@ const Navbar: React.FC = () => {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => navigate('/')}
+                <Link
+                  to="/"
                   className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Back to Site
-                </button>
+                </Link>
               )}
             </div>
           </div>
@@ -200,15 +184,12 @@ const Navbar: React.FC = () => {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => {
-                navigate('/');
-                setIsOpen(false);
-              }}
+            <Link
+              to="/"
               className="text-gray-600 hover:text-primary block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Back to Site
-            </button>
+            </Link>
           )}
         </div>
       </div>
