@@ -8,12 +8,12 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, resetPassword } = useAuth();
   const [error, setError] = useState<string>();
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
     } catch (err: unknown) {
       if (err instanceof FirebaseError) {
         switch (err.code) {
@@ -38,8 +38,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
   };
 
+  const handleResetPassword = async (email: string) => {
+    try {
+      await resetPassword(email);
+    } catch (err: unknown) {
+      throw err; // Let the Login component handle the error
+    }
+  };
+
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} error={error} />;
+    return (
+      <Login 
+        onLogin={handleLogin} 
+        onResetPassword={handleResetPassword}
+        error={error} 
+      />
+    );
   }
 
   return <>{children}</>;
