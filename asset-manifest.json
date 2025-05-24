@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Here-Comes-The-Bride/static/css/main.0b23a05f.css",
-    "main.js": "/Here-Comes-The-Bride/static/js/main.ff17d2f5.js",
-    "static/js/453.d1b214da.chunk.js": "/Here-Comes-The-Bride/static/js/453.d1b214da.chunk.js",
+    "main.css": "/Here-Comes-The-Bride/static/css/main.229035dd.css",
+    "main.js": "/Here-Comes-The-Bride/static/js/main.3236671a.js",
+    "static/js/453.fa995327.chunk.js": "/Here-Comes-The-Bride/static/js/453.fa995327.chunk.js",
     "index.html": "/Here-Comes-The-Bride/index.html",
-    "main.0b23a05f.css.map": "/Here-Comes-The-Bride/static/css/main.0b23a05f.css.map",
-    "main.ff17d2f5.js.map": "/Here-Comes-The-Bride/static/js/main.ff17d2f5.js.map",
-    "453.d1b214da.chunk.js.map": "/Here-Comes-The-Bride/static/js/453.d1b214da.chunk.js.map"
+    "main.229035dd.css.map": "/Here-Comes-The-Bride/static/css/main.229035dd.css.map",
+    "main.3236671a.js.map": "/Here-Comes-The-Bride/static/js/main.3236671a.js.map",
+    "453.fa995327.chunk.js.map": "/Here-Comes-The-Bride/static/js/453.fa995327.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.0b23a05f.css",
-    "static/js/main.ff17d2f5.js"
+    "static/css/main.229035dd.css",
+    "static/js/main.3236671a.js"
   ]
 }
