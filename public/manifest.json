@@ -1,19 +1,19 @@
 {
-  "short_name": "HCTB",
-  "name": "Here Comes The Bride",
+  "short_name": "Here Comes The Bride",
+  "name": "Here Comes The Bride - Wedding Dresses & Accessories",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "logo.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
-      "src": "logo192.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
@@ -21,5 +21,5 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#B19CD9",
-  "background_color": "#F8C8DC"
+  "background_color": "#ffffff"
 }

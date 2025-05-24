@@ -31,8 +31,11 @@ const MainLayout: React.FC = () => (
 );
 
 const App: React.FC = () => {
+  // Get the base URL from the homepage in package.json or default to '/'
+  const baseUrl = process.env.PUBLIC_URL || '/';
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={baseUrl}>
       <AuthProvider>
         <Routes>
           <Route path="/" element={<MainLayout />} />
