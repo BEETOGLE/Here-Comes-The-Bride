@@ -32,7 +32,7 @@ const ProductCard: React.FC<Product> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-primary/60">
+          <div className="absolute inset-0 flex items-center justify-center text-primary/60 text-2xl font-light">
             {imagePlaceholder}
           </div>
         )}

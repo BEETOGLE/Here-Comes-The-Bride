@@ -4,29 +4,38 @@ export interface Product {
   category: string;
   description: string;
   price: string;
-  imagePlaceholder: string;
   sold: boolean;
-  image?: string;
+  image?: string; // base64 string
+  imagePlaceholder?: string;
 }
 
 export const products: Product[] = [
   {
     "id": "dress-1",
-    "name": "Elegant Lace A-Line",
+    "name": "Classic White Wedding Dress",
     "category": "Wedding Dresses",
-    "description": "Beautiful A-line wedding dress with delicate lace details and a sweetheart neckline. Perfect for a traditional wedding.",
-    "price": "$999",
-    "imagePlaceholder": "Wedding Dress",
-    "sold": false
+    "description": "A beautiful traditional white wedding dress with lace details.",
+    "price": "$1,999",
+    "sold": false,
+    "imagePlaceholder": "Wedding Dress"
   },
   {
     "id": "dress-2",
-    "name": "Classic Ballgown",
-    "category": "Wedding Dresses",
-    "description": "A classic ballgown silhouette with a beaded bodice and full tulle skirt. This dress makes a stunning statement.",
-    "price": "$1,299",
-    "imagePlaceholder": "Wedding Dress",
-    "sold": true
+    "name": "Flower Girl Pink Dress",
+    "category": "Flower Girl Dresses",
+    "description": "Adorable pink dress perfect for flower girls.",
+    "price": "$299",
+    "sold": false,
+    "imagePlaceholder": "Flower Girl Dress"
+  },
+  {
+    "id": "belt-1",
+    "name": "Crystal Embellished Belt",
+    "category": "Belts",
+    "description": "Stunning crystal belt to accentuate your wedding dress.",
+    "price": "$199",
+    "sold": false,
+    "imagePlaceholder": "Belt"
   },
   {
     "id": "dress-3",
@@ -53,15 +62,6 @@ export const products: Product[] = [
     "description": "Sweet flower girl dress with lace overlay and satin ribbon. Available in multiple colors.",
     "price": "$225",
     "imagePlaceholder": "Flower Girl Dress",
-    "sold": false
-  },
-  {
-    "id": "belt-1",
-    "name": "Crystal Beaded Belt",
-    "category": "Belts",
-    "description": "Stunning crystal beaded belt to add sparkle to your wedding dress.",
-    "price": "$149",
-    "imagePlaceholder": "Belt",
     "sold": false
   },
   {

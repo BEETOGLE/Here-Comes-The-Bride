@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiEdit2, FiTrash2, FiPlus, FiLogOut } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX } from 'react-icons/fi';
 import { Product } from '../data/products';
 import { motion } from 'framer-motion';
 import { productService } from '../services/productService';
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const Admin: React.FC = () => {
   const { logout } = useAuth();
@@ -16,6 +18,7 @@ const Admin: React.FC = () => {
     price: '',
     sold: false
   });
+  const [imageError, setImageError] = useState<string>('');
 
   useEffect(() => {
     setProducts(productService.getProducts());
@@ -37,6 +40,39 @@ const Admin: React.FC = () => {
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
   };
+
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setImageError('');
+
+    if (!file) return;
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError('Image size must be less than 5MB');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('File must be an image');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCurrentProduct(prev => ({
+        ...prev,
+        image: reader.result as string
+      }));
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleRemoveImage = useCallback(() => {
+    setCurrentProduct(prev => ({
+      ...prev,
+      image: undefined
+    }));
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +221,49 @@ const Admin: React.FC = () => {
                     required
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">Product Image</label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                    <div className="space-y-1 text-center">
+                      {currentProduct.image ? (
+                        <div className="relative">
+                          <img
+                            src={currentProduct.image}
+                            alt="Product preview"
+                            className="mx-auto h-64 w-auto object-contain"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute top-0 right-0 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200"
+                          >
+                            <FiX size={20} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <FiImage className="mx-auto h-12 w-12 text-gray-400" />
+                          <div className="flex text-sm text-gray-600">
+                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                              <span>Upload a file</span>
+                              <input
+                                type="file"
+                                className="sr-only"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                              />
+                            </label>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                        </>
+                      )}
+                      {imageError && (
+                        <p className="text-red-500 text-sm mt-2">{imageError}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex justify-end space-x-4">
                 <button
@@ -219,6 +298,7 @@ const Admin: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -230,6 +310,19 @@ const Admin: React.FC = () => {
                 <tr key={product.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-16 w-16 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded">
+                        <FiImage className="text-gray-400" size={24} />
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">{product.category}</div>
