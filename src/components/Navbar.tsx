@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
                 to="/"
                 className="text-xl font-bold text-primary"
               >
-                <Logo />
+                <Logo size="medium" />
               </Link>
             </div>
           </div>

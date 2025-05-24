@@ -96,7 +96,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onResetPassword, error: propErro
       >
         <div>
           <div className="flex justify-center">
-            <Logo />
+            <Logo size="large" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Admin Login

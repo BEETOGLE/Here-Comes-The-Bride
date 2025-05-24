@@ -24,7 +24,7 @@ const LoadingAnimation: React.FC<{isLoading: boolean}> = ({ isLoading }) => {
             repeatDelay: 0.2
           }}
         >
-          <Logo className="mx-auto scale-150 mb-6" />
+          <Logo className="mx-auto scale-150 mb-6" size="large" />
         </motion.div>
         
         <motion.div 

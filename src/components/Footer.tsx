@@ -29,7 +29,7 @@ const Footer: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <Logo className="text-white mb-4" />
+            <Logo className="text-white mb-4" size="large" />
             <p className="text-gray-400 mb-6">
               Helping brides find their perfect dress without breaking the bank.
             </p>
