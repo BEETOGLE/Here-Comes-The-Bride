@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX, FiPackage, FiHeart } from 'react-icons/fi';
 import { Product } from '../data/products';
 import { motion } from 'framer-motion';
 import { productService } from '../services/productService';
+import DreamDressRequests from '../components/Admin/DreamDressRequests';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
+type AdminTab = 'products' | 'requests';
+
 const Admin: React.FC = () => {
   const { logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<AdminTab>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product>>({
@@ -135,229 +139,260 @@ const Admin: React.FC = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Product Management</h2>
+        <div className="flex space-x-4 mb-8">
           <button
-            onClick={() => {
-              setCurrentProduct({
-                name: '',
-                category: 'Wedding Dresses',
-                description: '',
-                price: '',
-                sold: false
-              });
-              setIsEditing(true);
-            }}
-            className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90"
+            onClick={() => setActiveTab('products')}
+            className={`flex items-center px-4 py-2 rounded-lg ${
+              activeTab === 'products'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
           >
-            <FiPlus /> Add New Product
+            <FiPackage className="mr-2" />
+            Products
+          </button>
+          <button
+            onClick={() => setActiveTab('requests')}
+            className={`flex items-center px-4 py-2 rounded-lg ${
+              activeTab === 'requests'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <FiHeart className="mr-2" />
+            Dream Dress Requests
           </button>
         </div>
 
-        {isEditing && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-6 rounded-lg shadow-md mb-8"
-          >
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={currentProduct.name}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg p-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Category</label>
-                  <select
-                    name="category"
-                    value={currentProduct.category}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg p-2"
-                    required
-                  >
-                    {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Price</label>
-                  <input
-                    type="text"
-                    name="price"
-                    value={currentProduct.price}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg p-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      name="sold"
-                      checked={currentProduct.sold}
-                      onChange={handleInputChange}
-                      className="rounded text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Sold</span>
-                  </label>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    name="description"
-                    value={currentProduct.description}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-lg p-2"
-                    rows={4}
-                    required
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block mb-2 text-sm font-medium text-gray-700">Product Image</label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                    <div className="space-y-1 text-center">
-                      {currentProduct.image ? (
-                        <div className="relative">
-                          <img
-                            src={currentProduct.image}
-                            alt="Product preview"
-                            className="mx-auto h-64 w-auto object-contain"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleRemoveImage}
-                            className="absolute top-0 right-0 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200"
-                          >
-                            <FiX size={20} />
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          <FiImage className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
-                              <span>Upload a file</span>
-                              <input
-                                type="file"
-                                className="sr-only"
-                                accept="image/*"
-                                onChange={handleImageUpload}
+        {activeTab === 'products' ? (
+          <>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Product Management</h2>
+              <button
+                onClick={() => {
+                  setCurrentProduct({
+                    name: '',
+                    category: 'Wedding Dresses',
+                    description: '',
+                    price: '',
+                    sold: false
+                  });
+                  setIsEditing(true);
+                }}
+                className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90"
+              >
+                <FiPlus /> Add New Product
+              </button>
+            </div>
+
+            {isEditing && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white p-6 rounded-lg shadow-md mb-8"
+              >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block mb-2 text-sm font-medium text-gray-700">Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={currentProduct.name}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg p-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm font-medium text-gray-700">Category</label>
+                      <select
+                        name="category"
+                        value={currentProduct.category}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg p-2"
+                        required
+                      >
+                        {categories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm font-medium text-gray-700">Price</label>
+                      <input
+                        type="text"
+                        name="price"
+                        value={currentProduct.price}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg p-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          name="sold"
+                          checked={currentProduct.sold}
+                          onChange={handleInputChange}
+                          className="rounded text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Sold</span>
+                      </label>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
+                      <textarea
+                        name="description"
+                        value={currentProduct.description}
+                        onChange={handleInputChange}
+                        className="w-full border rounded-lg p-2"
+                        rows={4}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block mb-2 text-sm font-medium text-gray-700">Product Image</label>
+                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                        <div className="space-y-1 text-center">
+                          {currentProduct.image ? (
+                            <div className="relative">
+                              <img
+                                src={currentProduct.image}
+                                alt="Product preview"
+                                className="mx-auto h-64 w-auto object-contain"
                               />
-                            </label>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                        </>
-                      )}
-                      {imageError && (
-                        <p className="text-red-500 text-sm mt-2">{imageError}</p>
-                      )}
+                              <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="absolute top-0 right-0 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200"
+                              >
+                                <FiX size={20} />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <FiImage className="mx-auto h-12 w-12 text-gray-400" />
+                              <div className="flex text-sm text-gray-600">
+                                <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                  <span>Upload a file</span>
+                                  <input
+                                    type="file"
+                                    className="sr-only"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                  />
+                                </label>
+                                <p className="pl-1">or drag and drop</p>
+                              </div>
+                              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                            </>
+                          )}
+                          {imageError && (
+                            <p className="text-red-500 text-sm mt-2">{imageError}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setCurrentProduct({
-                      name: '',
-                      category: 'Wedding Dresses',
-                      description: '',
-                      price: '',
-                      sold: false
-                    });
-                  }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-900"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                >
-                  {currentProduct.id ? 'Update Product' : 'Add Product'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setCurrentProduct({
+                          name: '',
+                          category: 'Wedding Dresses',
+                          description: '',
+                          price: '',
+                          sold: false
+                        });
+                      }}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-900"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                    >
+                      {currentProduct.id ? 'Update Product' : 'Add Product'}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
-                <tr key={product.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-16 w-16 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded">
-                        <FiImage className="text-gray-400" size={24} />
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{product.category}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{product.price}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      product.sold
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {product.sold ? 'Sold' : 'Available'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="text-primary hover:text-primary-dark mr-4"
-                    >
-                      <FiEdit2 className="inline" /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <FiTrash2 className="inline" /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {products.map((product) => (
+                    <tr key={product.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-16 w-16 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded">
+                            <FiImage className="text-gray-400" size={24} />
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{product.category}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{product.price}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          product.sold
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {product.sold ? 'Sold' : 'Available'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="text-primary hover:text-primary-dark mr-4"
+                        >
+                          <FiEdit2 className="inline" /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <FiTrash2 className="inline" /> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <DreamDressRequests />
+        )}
       </div>
     </div>
   );

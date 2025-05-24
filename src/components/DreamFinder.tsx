@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { dreamFinderService } from '../services/dreamFinderService';
 
 interface FormData {
   name: string;
@@ -17,6 +18,7 @@ const DreamFinder: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState<string>();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -29,11 +31,10 @@ const DreamFinder: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(undefined);
     
-    // TODO: Implement actual form submission logic here
-    // For now, we'll just simulate a successful submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await dreamFinderService.submitRequest(formData);
       setSubmitSuccess(true);
       setFormData({
         name: '',
@@ -41,7 +42,11 @@ const DreamFinder: React.FC = () => {
         phone: '',
         dreamDress: '',
       });
-    }, 1500);
+    } catch (err) {
+      setError('There was an error submitting your request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,6 +137,12 @@ const DreamFinder: React.FC = () => {
                   placeholder="Tell us about your dream dress... (style, fabric, details, etc.)"
                 />
               </div>
+
+              {error && (
+                <div className="text-red-600 text-sm text-center">
+                  {error}
+                </div>
+              )}
 
               <button
                 type="submit"
