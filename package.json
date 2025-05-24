@@ -13,6 +13,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "decap-cms-app": "^3.6.3",
     "framer-motion": "^12.9.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

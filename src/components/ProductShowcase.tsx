@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiHeart, FiInfo } from 'react-icons/fi';
 import AnimatedSection from './AnimatedSection';
 import { motion } from 'framer-motion';
@@ -11,6 +11,7 @@ interface ProductProps {
   price: string;
   imagePlaceholder: string;
   sold: boolean;
+  image?: string;
 }
 
 const Product: React.FC<ProductProps> = ({ 
@@ -19,7 +20,8 @@ const Product: React.FC<ProductProps> = ({
   category, 
   description, 
   price, 
-  imagePlaceholder, 
+  imagePlaceholder,
+  image, 
   sold 
 }) => {
   const [showInfo, setShowInfo] = useState(false);
@@ -30,11 +32,19 @@ const Product: React.FC<ProductProps> = ({
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Image Placeholder - would be replaced with actual image */}
+      {/* Product Image */}
       <div className="aspect-[2/3] bg-gray-100 relative">
-        <div className="absolute inset-0 flex items-center justify-center text-primary/60">
-          {imagePlaceholder}
-        </div>
+        {image ? (
+          <img 
+            src={image} 
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-primary/60">
+            {imagePlaceholder}
+          </div>
+        )}
         
         {sold && (
           <motion.div 
@@ -133,6 +143,7 @@ const CategorySection: React.FC<{
                 description={product.description}
                 price={product.price}
                 imagePlaceholder={product.imagePlaceholder}
+                image={product.image}
                 sold={product.sold}
               />
             </AnimatedSection>
@@ -144,99 +155,35 @@ const CategorySection: React.FC<{
 };
 
 const ProductShowcase: React.FC = () => {
-  // Sample product data - in a real app, this would come from a database or API
-  const products = [
-    {
-      id: "dress-1",
-      name: "Elegant Lace A-Line",
-      category: "Wedding Dresses",
-      description: "Beautiful A-line wedding dress with delicate lace details and a sweetheart neckline. Perfect for a traditional wedding.",
-      price: "$999",
-      imagePlaceholder: "Wedding Dress",
-      sold: false
-    },
-    {
-      id: "dress-2",
-      name: "Classic Ballgown",
-      category: "Wedding Dresses",
-      description: "A classic ballgown silhouette with a beaded bodice and full tulle skirt. This dress makes a stunning statement.",
-      price: "$1,299",
-      imagePlaceholder: "Wedding Dress",
-      sold: true
-    },
-    {
-      id: "dress-3",
-      name: "Mermaid Silhouette",
-      category: "Wedding Dresses",
-      description: "Stunning mermaid dress that hugs your curves and flares at the knee with beautiful train details.",
-      price: "$1,150",
-      imagePlaceholder: "Wedding Dress",
-      sold: false
-    },
-    {
-      id: "flower-1",
-      name: "Princess Flower Girl",
-      category: "Flower Girl Dresses",
-      description: "Adorable tea-length dress with a full tulle skirt and ribbon sash. Perfect for ages 4-8.",
-      price: "$199",
-      imagePlaceholder: "Flower Girl Dress",
-      sold: false
-    },
-    {
-      id: "flower-2",
-      name: "Lace Overlay Dress",
-      category: "Flower Girl Dresses",
-      description: "Sweet flower girl dress with lace overlay and satin ribbon. Available in multiple colors.",
-      price: "$225",
-      imagePlaceholder: "Flower Girl Dress",
-      sold: false
-    },
-    {
-      id: "belt-1",
-      name: "Crystal Beaded Belt",
-      category: "Belts",
-      description: "Stunning crystal beaded belt to add sparkle to your wedding dress.",
-      price: "$149",
-      imagePlaceholder: "Belt",
-      sold: false
-    },
-    {
-      id: "veil-1",
-      name: "Cathedral Length Veil",
-      category: "Veils",
-      description: "Stunning cathedral-length veil with delicate lace edging. Adds a dramatic touch to any dress.",
-      price: "$299",
-      imagePlaceholder: "Veil",
-      sold: false
-    },
-    {
-      id: "veil-2",
-      name: "Fingertip Length Veil",
-      category: "Veils",
-      description: "Classic fingertip length veil with simple edge. Perfect for most dress styles.",
-      price: "$179",
-      imagePlaceholder: "Veil",
-      sold: false
-    },
-    {
-      id: "jewelry-1",
-      name: "Pearl Necklace Set",
-      category: "Jewelry",
-      description: "Elegant pearl necklace and earring set that complements any wedding dress style.",
-      price: "$149",
-      imagePlaceholder: "Jewelry",
-      sold: false
-    },
-    {
-      id: "hair-1",
-      name: "Crystal Hair Comb",
-      category: "Hair Pieces",
-      description: "Beautiful crystal hair comb that adds the perfect amount of sparkle to your bridal look.",
-      price: "$125",
-      imagePlaceholder: "Hair Piece",
-      sold: false
-    },
-  ];
+  const [products, setProducts] = useState<ProductProps[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/admin/config.yml');
+        if (!response.ok) {
+          throw new Error('Failed to fetch CMS configuration');
+        }
+        
+        // For now, fall back to the JSON file if CMS is not yet configured
+        const productsResponse = await fetch('/data/products.json');
+        if (!productsResponse.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        
+        const productsData = await productsResponse.json();
+        setProducts(productsData);
+        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load products');
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const categories = [
     {
@@ -276,6 +223,22 @@ const ProductShowcase: React.FC = () => {
       description: "Beautiful hair pieces to complete your perfect bridal look."
     }
   ];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div>
