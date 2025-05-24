@@ -2,7 +2,7 @@
   "name": "here-comes-the-bride",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://thomas.github.io/Here-Comes-The-Bride",
+  "homepage": "https://beetogle.github.io/Here-Comes-The-Bride",
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@testing-library/dom": "^10.4.0",
