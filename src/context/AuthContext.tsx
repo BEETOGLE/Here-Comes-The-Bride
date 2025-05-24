@@ -30,7 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
-    // In a real app, you would validate credentials against a backend
     if (username === 'admin' && password === 'password123') {
       setIsAuthenticated(true);
       localStorage.setItem('isAuthenticated', 'true');
