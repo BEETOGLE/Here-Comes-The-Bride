@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBnz1uazfXDGLF4ymlpHFgsqluZih161yc",
   authDomain: "here-comes-the-bride.firebaseapp.com",
   projectId: "here-comes-the-bride",
-  storageBucket: "here-comes-the-bride.firebasestorage.app",
+  storageBucket: "here-comes-the-bride.appspot.com", // ← fixed
   messagingSenderId: "28319259817",
   appId: "1:28319259817:web:1019660619c3d606f91db8",
   measurementId: "G-R7L653G5ND"
