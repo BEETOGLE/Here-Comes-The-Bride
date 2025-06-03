@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProductCategories from './components/Services';
@@ -31,11 +31,8 @@ const MainLayout: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  // Get the base URL from the homepage in package.json or default to '/'
-  const baseUrl = process.env.PUBLIC_URL || '/';
-
   return (
-    <BrowserRouter basename={baseUrl}>
+    <HashRouter>
       <AuthProvider>
         <Routes>
           <Route path="/" element={<MainLayout />} />
@@ -50,7 +47,7 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
