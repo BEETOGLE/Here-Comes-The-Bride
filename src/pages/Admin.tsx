@@ -30,6 +30,7 @@ const Admin: React.FC = () => {
   });
   const [imageError, setImageError] = useState<string>('');
   const [imageUploading, setImageUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [newDreamRequests, setNewDreamRequests] = useState(0);
   const [newAppointments, setNewAppointments] = useState(0);
   const [actionLoading, setActionLoading] = useState<string>(''); // Track which action is loading
@@ -119,6 +120,7 @@ const Admin: React.FC = () => {
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setImageError('');
+    setUploadSuccess(false);
 
     if (!file) return;
 
@@ -137,6 +139,9 @@ const Admin: React.FC = () => {
         imageUrl: imageUrl
       }));
       
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000); // Clear success after 3 seconds
+      
     } catch (error: any) {
       setImageError(error.message || 'Failed to upload image');
       console.error('Image upload error:', error);
@@ -150,10 +155,17 @@ const Admin: React.FC = () => {
       ...prev,
       imageUrl: undefined
     }));
+    setUploadSuccess(false);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent saving if image is still uploading
+    if (imageUploading) {
+      setError('Please wait for image upload to complete before saving.');
+      return;
+    }
     
     try {
       setActionLoading('save');
@@ -181,6 +193,9 @@ const Admin: React.FC = () => {
         price: '',
         sold: false
       });
+      setUploadSuccess(false);
+      setImageError('');
+      
     } catch (err) {
       setError('Failed to save product. Please try again.');
       console.error('Error saving product:', err);
@@ -395,21 +410,30 @@ const Admin: React.FC = () => {
                               <img
                                 src={currentProduct.imageUrl}
                                 alt="Product preview"
-                                className="mx-auto h-64 w-auto object-contain"
+                                className="mx-auto h-64 w-auto object-contain rounded-lg shadow-sm"
+                                loading="lazy"
                               />
                               <button
                                 type="button"
                                 onClick={handleRemoveImage}
-                                className="absolute top-0 right-0 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200"
+                                className="absolute top-2 right-2 bg-red-100 text-red-600 rounded-full p-2 hover:bg-red-200 shadow-sm"
                                 disabled={imageUploading}
                               >
-                                <FiX size={20} />
+                                <FiX size={16} />
                               </button>
+                              {uploadSuccess && (
+                                <div className="absolute top-2 left-2 bg-green-100 text-green-600 rounded-full p-2 shadow-sm">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
                             </div>
                           ) : imageUploading ? (
-                            <div className="flex flex-col items-center">
-                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-2"></div>
-                              <p className="text-sm text-gray-600">Uploading to Imgur...</p>
+                            <div className="flex flex-col items-center py-8">
+                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                              <div className="text-primary font-medium">Uploading to Imgur...</div>
+                              <div className="text-sm text-gray-500 mt-1">Please wait while your image uploads</div>
                             </div>
                           ) : (
                             <>
@@ -428,11 +452,28 @@ const Admin: React.FC = () => {
                                 <p className="pl-1">or drag and drop</p>
                               </div>
                               <p className="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
-                              <p className="text-xs text-gray-400">Images will be hosted on Imgur</p>
+                              <p className="text-xs text-gray-400">Images will be hosted on Imgur for free</p>
                             </>
                           )}
                           {imageError && (
-                            <p className="text-red-500 text-sm mt-2">{imageError}</p>
+                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                              <div className="flex items-center">
+                                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                {imageError}
+                              </div>
+                            </div>
+                          )}
+                          {uploadSuccess && !currentProduct.imageUrl && (
+                            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                              <div className="flex items-center">
+                                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                Image uploaded successfully!
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -496,13 +537,18 @@ const Admin: React.FC = () => {
                           <img
                             src={product.imageUrl}
                             alt={product.name}
-                            className="h-16 w-16 object-cover rounded"
+                            className="h-16 w-16 object-cover rounded shadow-sm"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
                           />
-                        ) : (
-                          <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded">
-                            <FiImage className="text-gray-400" size={24} />
-                          </div>
-                        )}
+                        ) : null}
+                        {/* Fallback placeholder */}
+                        <div className={`h-16 w-16 bg-gray-100 flex items-center justify-center rounded ${product.imageUrl ? 'hidden' : ''}`}>
+                          <FiImage className="text-gray-400" size={24} />
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{product.category}</div>
