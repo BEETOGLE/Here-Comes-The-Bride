@@ -12,7 +12,7 @@ const ProductCard: React.FC<Product> = ({
   description, 
   price, 
   imagePlaceholder,
-  image, 
+  imageUrl, 
   sold 
 }) => {
   const [showInfo, setShowInfo] = useState(false);
@@ -25,17 +25,23 @@ const ProductCard: React.FC<Product> = ({
     >
       {/* Product Image */}
       <div className="aspect-[2/3] bg-gray-100 relative">
-        {image ? (
+        {imageUrl ? (
           <img 
-            src={image} 
+            src={imageUrl} 
             alt={name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+            }}
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-primary/60 text-2xl font-light">
-            {imagePlaceholder}
-          </div>
-        )}
+        ) : null}
+        
+        {/* Placeholder - shown when no image or image fails to load */}
+        <div className={`absolute inset-0 flex items-center justify-center text-primary/60 text-2xl font-light ${imageUrl ? 'hidden' : ''}`}>
+          {imagePlaceholder}
+        </div>
         
         {sold && (
           <motion.div 
@@ -138,30 +144,26 @@ const CategorySection: React.FC<{
 
 const ProductShowcase: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    // Initial load
-    setProducts(productService.getProducts());
-
-    // Set up storage event listener for real-time updates
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'shop_products') {
-        setProducts(JSON.parse(e.newValue || '[]'));
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // Check for updates every 5 seconds
-    const interval = setInterval(() => {
-      setProducts(productService.getProducts());
-    }, 5000);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
+    loadProducts();
   }, []);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const loadedProducts = await productService.getProducts();
+      setProducts(loadedProducts);
+    } catch (err) {
+      setError('Failed to load products. Please try refreshing the page.');
+      console.error('Error loading products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const categories = [
     {
@@ -198,20 +200,51 @@ const ProductShowcase: React.FC = () => {
       id: "hair-pieces",
       title: "Hair Accessories",
       category: "Hair Pieces",
-      description: "Beautiful hair pieces to complete your perfect bridal look."
+      description: "Beautiful hair accessories to complete your bridal style."
     }
   ];
 
+  if (loading && products.length === 0) {
+    return (
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading our beautiful collection...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg inline-block">
+              <p className="font-medium">Unable to load products</p>
+              <p className="text-sm mt-1">{error}</p>
+              <button 
+                onClick={loadProducts}
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {categories.map((category) => (
+    <div className="bg-white">
+      {categories.map((categoryData) => (
         <CategorySection
-          key={category.id}
-          id={category.id}
-          title={category.title}
-          category={category.category}
-          description={category.description}
+          key={categoryData.id}
           products={products}
+          {...categoryData}
         />
       ))}
     </div>

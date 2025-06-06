@@ -5,7 +5,7 @@ export interface Product {
   description: string;
   price: string;
   sold: boolean;
-  image?: string; // base64 string
+  imageUrl?: string; // Imgur image URL
   imagePlaceholder?: string;
 }
 

@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX, FiPackage, FiHeart, FiCalendar } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLogOut, FiImage, FiX, FiPackage, FiHeart, FiCalendar, FiUpload } from 'react-icons/fi';
 import { Product } from '../data/products';
 import { motion } from 'framer-motion';
 import { productService } from '../services/productService';
+import { imgurService } from '../services/imgurService';
 import { dreamFinderService } from '../services/dreamFinderService';
 import { appointmentService } from '../services/appointmentService';
 import DreamDressRequests from '../components/Admin/DreamDressRequests';
 import AppointmentRequests from '../components/Admin/AppointmentRequests';
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB (Imgur limit)
 
 type AdminTab = 'products' | 'requests' | 'appointments';
 
@@ -17,6 +18,8 @@ const Admin: React.FC = () => {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('products');
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product>>({
     name: '',
@@ -26,15 +29,15 @@ const Admin: React.FC = () => {
     sold: false
   });
   const [imageError, setImageError] = useState<string>('');
+  const [imageUploading, setImageUploading] = useState(false);
   const [newDreamRequests, setNewDreamRequests] = useState(0);
   const [newAppointments, setNewAppointments] = useState(0);
+  const [actionLoading, setActionLoading] = useState<string>(''); // Track which action is loading
 
   useEffect(() => {
-    // Initial load
-    setProducts(productService.getProducts());
     updateNotifications();
 
-    // Set up storage event listener for real-time updates
+    // Set up storage event listener for notifications
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'dream_dress_requests' || e.key === 'appointment_requests') {
         updateNotifications();
@@ -51,6 +54,42 @@ const Admin: React.FC = () => {
       clearInterval(interval);
     };
   }, []);
+
+  // Separate effect for product management - only when products tab is active
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+
+    if (activeTab === 'products') {
+      // Load initial products
+      loadProducts();
+      
+      // Set up real-time listener only for products tab
+      unsubscribe = productService.subscribeToProducts((updatedProducts) => {
+        setProducts(updatedProducts);
+        setLoading(false);
+      });
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [activeTab]);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const loadedProducts = await productService.getProducts();
+      setProducts(loadedProducts);
+    } catch (err) {
+      setError('Failed to load products. Please try again.');
+      console.error('Error loading products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updateNotifications = () => {
     const dreamRequests = dreamFinderService.getRequests();
@@ -77,64 +116,77 @@ const Admin: React.FC = () => {
     }));
   };
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setImageError('');
 
     if (!file) return;
 
-    if (file.size > MAX_IMAGE_SIZE) {
-      setImageError('Image size must be less than 5MB');
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      setImageError('File must be an image');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    try {
+      setImageUploading(true);
+      
+      // Validate image using Imgur service
+      imgurService.validateImage(file, MAX_IMAGE_SIZE);
+      
+      // Upload to Imgur
+      const imageUrl = await imgurService.uploadImage(file);
+      
+      // Update current product with Imgur URL
       setCurrentProduct(prev => ({
         ...prev,
-        image: reader.result as string
+        imageUrl: imageUrl
       }));
-    };
-    reader.readAsDataURL(file);
+      
+    } catch (error: any) {
+      setImageError(error.message || 'Failed to upload image');
+      console.error('Image upload error:', error);
+    } finally {
+      setImageUploading(false);
+    }
   }, []);
 
   const handleRemoveImage = useCallback(() => {
     setCurrentProduct(prev => ({
       ...prev,
-      image: undefined
+      imageUrl: undefined
     }));
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentProduct.id) {
-      // Update existing product
-      const updatedProduct = { ...currentProduct as Product };
-      productService.updateProduct(updatedProduct);
-      setProducts(productService.getProducts());
-    } else {
-      // Add new product
-      const newProduct: Product = {
-        ...currentProduct as Product,
-        id: `product-${Date.now()}`,
-        imagePlaceholder: currentProduct.category || 'Product'
-      };
-      productService.addProduct(newProduct);
-      setProducts(productService.getProducts());
+    
+    try {
+      setActionLoading('save');
+      setError('');
+      
+      if (currentProduct.id) {
+        // Update existing product
+        const updatedProduct = { ...currentProduct as Product };
+        await productService.updateProduct(updatedProduct);
+      } else {
+        // Add new product
+        const newProduct: Product = {
+          ...currentProduct as Product,
+          id: `product-${Date.now()}`,
+          imagePlaceholder: currentProduct.category || 'Product'
+        };
+        await productService.addProduct(newProduct);
+      }
+      
+      setIsEditing(false);
+      setCurrentProduct({
+        name: '',
+        category: 'Wedding Dresses',
+        description: '',
+        price: '',
+        sold: false
+      });
+    } catch (err) {
+      setError('Failed to save product. Please try again.');
+      console.error('Error saving product:', err);
+    } finally {
+      setActionLoading('');
     }
-    setIsEditing(false);
-    setCurrentProduct({
-      name: '',
-      category: 'Wedding Dresses',
-      description: '',
-      price: '',
-      sold: false
-    });
   };
 
   const handleEdit = (product: Product) => {
@@ -142,12 +194,31 @@ const Admin: React.FC = () => {
     setIsEditing(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      productService.deleteProduct(id);
-      setProducts(productService.getProducts());
+      try {
+        setActionLoading(id);
+        setError('');
+        await productService.deleteProduct(id);
+      } catch (err) {
+        setError('Failed to delete product. Please try again.');
+        console.error('Error deleting product:', err);
+      } finally {
+        setActionLoading('');
+      }
     }
   };
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -238,6 +309,16 @@ const Admin: React.FC = () => {
               </button>
             </div>
 
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6"
+              >
+                {error}
+              </motion.div>
+            )}
+
             {isEditing && (
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -309,10 +390,10 @@ const Admin: React.FC = () => {
                       <label className="block mb-2 text-sm font-medium text-gray-700">Product Image</label>
                       <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
                         <div className="space-y-1 text-center">
-                          {currentProduct.image ? (
+                          {currentProduct.imageUrl ? (
                             <div className="relative">
                               <img
-                                src={currentProduct.image}
+                                src={currentProduct.imageUrl}
                                 alt="Product preview"
                                 className="mx-auto h-64 w-auto object-contain"
                               />
@@ -320,26 +401,34 @@ const Admin: React.FC = () => {
                                 type="button"
                                 onClick={handleRemoveImage}
                                 className="absolute top-0 right-0 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200"
+                                disabled={imageUploading}
                               >
                                 <FiX size={20} />
                               </button>
                             </div>
+                          ) : imageUploading ? (
+                            <div className="flex flex-col items-center">
+                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-2"></div>
+                              <p className="text-sm text-gray-600">Uploading to Imgur...</p>
+                            </div>
                           ) : (
                             <>
-                              <FiImage className="mx-auto h-12 w-12 text-gray-400" />
+                              <FiUpload className="mx-auto h-12 w-12 text-gray-400" />
                               <div className="flex text-sm text-gray-600">
                                 <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
-                                  <span>Upload a file</span>
+                                  <span>Upload to Imgur</span>
                                   <input
                                     type="file"
                                     className="sr-only"
                                     accept="image/*"
                                     onChange={handleImageUpload}
+                                    disabled={imageUploading}
                                   />
                                 </label>
                                 <p className="pl-1">or drag and drop</p>
                               </div>
-                              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                              <p className="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
+                              <p className="text-xs text-gray-400">Images will be hosted on Imgur</p>
                             </>
                           )}
                           {imageError && (
@@ -363,14 +452,21 @@ const Admin: React.FC = () => {
                         });
                       }}
                       className="px-4 py-2 text-gray-600 hover:text-gray-900"
+                      disabled={actionLoading === 'save' || imageUploading}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      disabled={actionLoading === 'save' || imageUploading}
                     >
-                      {currentProduct.id ? 'Update Product' : 'Add Product'}
+                      {(actionLoading === 'save' || imageUploading) && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      )}
+                      {imageUploading ? 'Uploading Image...' : 
+                       actionLoading === 'save' ? 'Saving...' :
+                       currentProduct.id ? 'Update Product' : 'Add Product'}
                     </button>
                   </div>
                 </form>
@@ -396,9 +492,9 @@ const Admin: React.FC = () => {
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {product.image ? (
+                        {product.imageUrl ? (
                           <img
-                            src={product.image}
+                            src={product.imageUrl}
                             alt={product.name}
                             className="h-16 w-16 object-cover rounded"
                           />
@@ -426,15 +522,22 @@ const Admin: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => handleEdit(product)}
-                          className="text-primary hover:text-primary-dark mr-4"
+                          className="text-primary hover:text-primary-dark mr-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={actionLoading !== ''}
                         >
                           <FiEdit2 className="inline" /> Edit
                         </button>
                         <button
                           onClick={() => handleDelete(product.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          disabled={actionLoading !== ''}
                         >
-                          <FiTrash2 className="inline" /> Delete
+                          {actionLoading === product.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                          ) : (
+                            <FiTrash2 className="inline" />
+                          )}
+                          Delete
                         </button>
                       </td>
                     </tr>
