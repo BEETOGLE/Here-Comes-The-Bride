@@ -33,7 +33,17 @@ npm install
 3. Set up environment variables:
 Create a `.env` file in the root directory:
 ```env
+# Imgur Configuration
 REACT_APP_IMGUR_CLIENT_ID=your_imgur_client_id_here
+
+# Firebase Configuration
+REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your-project-id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+REACT_APP_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
 4. Start the development server:
@@ -43,6 +53,40 @@ npm start
 
 ## 🔧 Configuration
 
+### Firebase Setup
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project or select existing one
+3. Enable Firestore Database
+4. Enable Authentication with Email/Password
+5. Copy your Firebase config to `.env` file
+
+### Firestore Security Rules
+For testing, you can use open rules (NOT for production):
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+For production, implement proper security rules:
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Products can be read by anyone, but only authenticated users can write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
+```
+
 ### Imgur Integration
 This project uses Imgur for free image hosting. The Imgur Client ID is safe to expose in frontend applications as it's designed for public use.
 
@@ -51,10 +95,34 @@ This project uses Imgur for free image hosting. The Imgur Client ID is safe to e
 2. Register your application
 3. Copy the Client ID to your `.env` file
 
-**Note:** The current fallback Client ID is for development/testing only. Use your own for production.
+## 🛠️ Troubleshooting
 
-### Firebase Configuration
-Update `src/config/firebase.ts` with your Firebase project configuration.
+### Firestore 400 Bad Request Errors
+If you encounter 400 errors from Firestore:
+
+1. **Check Firebase Configuration**:
+   - Verify all environment variables are set correctly
+   - Check browser console for Firebase config logs
+   - Ensure `projectId` matches your Firebase project
+
+2. **Verify Firestore is Enabled**:
+   - Go to Firebase Console → Firestore Database
+   - Make sure Firestore is enabled (not Realtime Database)
+   - Check that you're using the correct project
+
+3. **Security Rules**:
+   - Temporarily set rules to allow all reads/writes for testing
+   - Check Firebase Console → Firestore → Rules tab
+
+4. **Network Issues**:
+   - Check if `firestore.googleapis.com` is accessible
+   - Disable browser extensions that might block requests
+   - Try incognito/private browsing mode
+
+### Environment Variables Not Loading
+- Ensure `.env` file is in the root directory
+- Restart development server after changing `.env`
+- For production builds, environment variables must be set during build time
 
 ## 📁 Project Structure
 
@@ -111,6 +179,17 @@ This project is designed to be completely free to operate:
 - Imgur Client ID is safe for frontend exposure
 - Firebase security rules protect admin operations
 - No sensitive keys in frontend code
+- Environment variables are used for configuration
+
+## 🔍 Debug Mode
+
+The application includes extensive logging for troubleshooting:
+- Firebase configuration validation
+- Firestore operation logs
+- Error handling with detailed messages
+- Environment variable verification
+
+Check browser console for detailed logs during development and production.
 
 ## 📄 License
 
