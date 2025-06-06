@@ -34,6 +34,7 @@ const Admin: React.FC = () => {
   const [newDreamRequests, setNewDreamRequests] = useState(0);
   const [newAppointments, setNewAppointments] = useState(0);
   const [actionLoading, setActionLoading] = useState<string>(''); // Track which action is loading
+  const [connectionMode, setConnectionMode] = useState<'realtime' | 'polling' | 'disconnected'>('disconnected');
 
   useEffect(() => {
     updateNotifications();
@@ -61,14 +62,28 @@ const Admin: React.FC = () => {
     let unsubscribe: (() => void) | null = null;
 
     if (activeTab === 'products') {
-      // Load initial products
+      // Load initial products first
       loadProducts();
       
-      // Set up real-time listener only for products tab
-      unsubscribe = productService.subscribeToProducts((updatedProducts) => {
-        setProducts(updatedProducts);
+      try {
+        // Set up real-time listener only for products tab
+        // This will automatically fall back to polling if real-time fails
+        unsubscribe = productService.subscribeToProducts(
+          (updatedProducts) => {
+            setProducts(updatedProducts);
+            setLoading(false);
+            setError(''); // Clear any previous errors on successful update
+          },
+          (mode) => {
+            setConnectionMode(mode);
+            console.log('🔗 Connection mode changed to:', mode);
+          }
+        );
+      } catch (error: any) {
+        console.error('Failed to setup product listener:', error);
+        setError('Real-time updates unavailable, using manual refresh mode');
         setLoading(false);
-      });
+      }
     }
 
     return () => {
@@ -307,21 +322,34 @@ const Admin: React.FC = () => {
           <>
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900">Product Management</h2>
-              <button
-                onClick={() => {
-                  setCurrentProduct({
-                    name: '',
-                    category: 'Wedding Dresses',
-                    description: '',
-                    price: '',
-                    sold: false
-                  });
-                  setIsEditing(true);
-                }}
-                className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90"
-              >
-                <FiPlus /> Add New Product
-              </button>
+              <div className="flex items-center gap-4">
+                {/* Connection Status Indicator */}
+                <div className="flex items-center gap-2 text-sm">
+                  <div className={`w-2 h-2 rounded-full ${
+                    connectionMode === 'realtime' ? 'bg-green-500' :
+                    connectionMode === 'polling' ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-gray-600">
+                    {connectionMode === 'realtime' ? 'Real-time' :
+                     connectionMode === 'polling' ? 'Polling mode' : 'Connecting...'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setCurrentProduct({
+                      name: '',
+                      category: 'Wedding Dresses',
+                      description: '',
+                      price: '',
+                      sold: false
+                    });
+                    setIsEditing(true);
+                  }}
+                  className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90"
+                >
+                  <FiPlus /> Add New Product
+                </button>
+              </div>
             </div>
 
             {error && (
